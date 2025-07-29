@@ -2,12 +2,13 @@ import os
 import sys
 import concurrent.futures
 import json
+from typing import List, Dict
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from visgpt import chat_completion
 from ENV import base_url, api_key
 from requirement import split_markdown_by_module,upload_files_and_create_collections
-from test import get_manual_and_api_collection_ids_from_local
+ 
 
 def extract_manual_and_api_collections(collections_by_type: dict) -> list:
     """
@@ -116,6 +117,30 @@ def generate_test_cases(md_table: str, dataset_id: str, collection_ids: list) ->
     )
 
     return final_table
+
+def get_manual_and_api_collection_ids_from_local() -> Dict[str, List[str]]:
+    """
+    从本地 JSON 文件中读取 '用户手册' 和 '接口文档' 的集合 ID 列表。
+    """
+    path = "output/collection_type_map.json"
+    if not os.path.exists(path):
+        print(f"[错误] 文件不存在: {path}")
+        return {}
+
+    with open(path, "r", encoding="utf-8") as f:
+        collections_by_type = json.load(f)
+
+    manual_ids = collections_by_type.get("用户手册", [])
+    api_doc_ids = collections_by_type.get("技术文档", [])
+
+    print("用户手册集合 ID:", manual_ids)
+    print("技术文档集合 ID:", api_doc_ids)
+
+    return {
+        "用户手册": manual_ids,
+        "技术文档": api_doc_ids
+    }
+
 
 
 def testcase_main():
